@@ -1,7 +1,13 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from .routers import zones, triage, manifest, routing, alerts
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+os.makedirs(STATIC_DIR, exist_ok=True)
 
 app = FastAPI(title="DRR Triage Backend")
 
@@ -13,6 +19,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount /static to serve generated manifests and assets
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # Register all 5 routers with prefix "/api"
 app.include_router(zones.router, prefix="/api", tags=["Hazard Zones"])
