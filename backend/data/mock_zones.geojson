@@ -1,0 +1,57 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "zone_001",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [76.15, 11.55],
+            [76.16, 11.55],
+            [76.16, 11.56],
+            [76.15, 11.56],
+            [76.15, 11.55]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "zone_001",
+        "name": "Chooralmala Debris Corridor",
+        "zone_color": "RED",
+        "fos": 0.72,
+        "blsr": 1.45,
+        "ccsi": 0.88,
+        "confidence_score": 0.85,
+        "terrain_mode": "MOUNTAIN_CASCADE"
+      }
+    },
+    {
+      "type": "Feature",
+      "id": "zone_002",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [76.13, 11.54],
+            [76.14, 11.54],
+            [76.14, 11.55],
+            [76.13, 11.55],
+            [76.13, 11.54]
+          ]
+        ]
+      },
+      "properties": {
+        "zone_id": "zone_002",
+        "name": "Meppadi Buffer Zone",
+        "zone_color": "YELLOW",
+        "fos": 1.15,
+        "blsr": 0.92,
+        "ccsi": 0.54,
+        "confidence_score": 0.78,
+        "terrain_mode": "MOUNTAIN_CASCADE"
+      }
+    }
+  ]
+}

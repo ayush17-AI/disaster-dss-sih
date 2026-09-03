@@ -1,56 +1,33 @@
+import math
+
 def calculate_fos(beta: float, z: float, c_prime: float, phi_prime: float, m: float, q: float) -> float:
     """
-    Calculate the Factor of Safety (FOS) for slope stability.
-    
-    Args:
-        beta (float): Slope angle (degrees).
-        z (float): Soil depth (m).
-        c_prime (float): Effective cohesion (kPa).
-        phi_prime (float): Effective friction angle (degrees).
-        m (float): Groundwater ratio (dimensionless).
-        q (float): Construction/surcharge load (kPa).
-        
-    Returns:
-        float: Calculated FOS value.
+    Calculate the Factor of Safety (FOS) using Infinite Slope Stability equation.
+    m: saturation ratio (0.0 to 1.0)
+    q: surcharge load (kPa)
     """
-    pass
+    gamma = 20.0  # Unit weight of soil (kN/m^3)
+    gamma_w = 9.81  # Unit weight of water (kN/m^3)
+    beta_rad = math.radians(beta)
+    phi_rad = math.radians(phi_prime)
+
+    normal_stress_total = (gamma * z + q) * (math.cos(beta_rad) ** 2)
+    pore_pressure = m * gamma_w * z * (math.cos(beta_rad) ** 2)
+    effective_normal_stress = normal_stress_total - pore_pressure
+    
+    shear_strength = c_prime + effective_normal_stress * math.tan(phi_rad)
+    shear_stress = (gamma * z + q) * math.sin(beta_rad) * math.cos(beta_rad)
+    
+    if shear_stress <= 0:
+        return 99.99
+    return round(shear_strength / shear_stress, 3)
 
 def calculate_blsr(buildings_area: float, zone_area: float) -> float:
-    """
-    Calculate the Built-up Load to Slope Ratio (BLSR).
-    
-    Args:
-        buildings_area (float): Total area of buildings in the zone.
-        zone_area (float): Total area of the hazard zone.
-        
-    Returns:
-        float: Calculated BLSR value.
-    """
-    pass
+    if zone_area == 0: return 0.0
+    return round((buildings_area / zone_area) * 100.0, 2)
 
 def calculate_rts(rainfall_intensity: float, terrain_slope: float, soil_type_factor: float) -> float:
-    """
-    Calculate the Rainfall Trigger Susceptibility (RTS).
-    
-    Args:
-        rainfall_intensity (float): Rainfall intensity (mm/hr).
-        terrain_slope (float): Terrain slope (degrees).
-        soil_type_factor (float): Factor representing soil permeability and saturation.
-        
-    Returns:
-        float: Calculated RTS value.
-    """
-    pass
+    return round((rainfall_intensity * math.tan(math.radians(terrain_slope))) / (soil_type_factor + 0.001), 3)
 
 def calculate_confidence(data_quality_index: float, model_accuracy: float) -> float:
-    """
-    Calculate the Confidence interval of the predicted hazard zone.
-    
-    Args:
-        data_quality_index (float): Metric representing input data quality (0 to 1).
-        model_accuracy (float): Historical accuracy of the model (0 to 1).
-        
-    Returns:
-        float: Calculated confidence percentage (0 to 100).
-    """
-    pass
+    return round((data_quality_index * 0.4 + model_accuracy * 0.6) * 100.0, 2)
