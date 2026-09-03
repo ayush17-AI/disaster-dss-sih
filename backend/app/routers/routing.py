@@ -29,10 +29,10 @@ def _get_red_zone_polygons():
 
 @router.get("/route", response_model=RouteResponse)
 def get_route(
-    from_lat: float = Query(..., description="Starting latitude"),
-    from_lon: float = Query(..., description="Starting longitude"),
-    to_lat: float = Query(..., description="Destination latitude"),
-    to_lon: float = Query(..., description="Destination longitude"),
+    from_lat: float = Query(11.55, description="Starting latitude"),
+    from_lon: float = Query(76.10, description="Starting longitude"),
+    to_lat: float = Query(11.60, description="Destination latitude"),
+    to_lon: float = Query(76.15, description="Destination longitude"),
     region: str = Query("wayanad", description="Region name for graph network")
 ):
     try:
