@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 class HazardZone(BaseModel):
     zone_id: str
@@ -33,6 +33,7 @@ class RouteResponse(BaseModel):
     path_coordinates: List[List[float]]
     distance_km: float
     avoids_red_zones: bool
+    warning: Optional[str] = None
 
 class ManifestRequest(BaseModel):
     habitation_id: str

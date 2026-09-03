@@ -11,9 +11,9 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 
 def load_graph(region: str):
     """
-    Load a road network graph from disk cache or memory cache.
+    Load a road network graph from disk cache or memory cache with defensive fallback.
     """
-    norm_region = region.lower().strip()
+    norm_region = region.lower().strip() if region else "wayanad"
     if norm_region in _graph_cache:
         return _graph_cache[norm_region]
         
@@ -29,25 +29,31 @@ def load_graph(region: str):
 
 def remove_edges_in_red_zones(G, red_zone_polygons):
     """
-    Create a copy of G and remove edges intersecting any polygon in red_zone_polygons.
+    Create a copy of G and defensively remove edges intersecting any polygon in red_zone_polygons.
     """
     if not red_zone_polygons:
         return G.copy()
         
     polys = []
     for p in red_zone_polygons:
-        if isinstance(p, dict):
-            geom = shape(p)
-        else:
-            geom = p
-        if geom.is_valid and not geom.is_empty:
-            polys.append(geom)
+        try:
+            if isinstance(p, dict):
+                geom = shape(p)
+            else:
+                geom = p
+            if geom and geom.is_valid and not geom.is_empty:
+                polys.append(geom)
+        except Exception:
+            continue
             
     if not polys:
         return G.copy()
         
-    combined_poly = shapely.ops.unary_union(polys)
-    minx, miny, maxx, maxy = combined_poly.bounds
+    try:
+        combined_poly = shapely.ops.unary_union(polys)
+        minx, miny, maxx, maxy = combined_poly.bounds
+    except Exception:
+        return G.copy()
     
     G_working = G.copy()
     edges_to_remove = []
@@ -62,9 +68,12 @@ def remove_edges_in_red_zones(G, red_zone_polygons):
         if max(ux, vx) < minx or min(ux, vx) > maxx or max(uy, vy) < miny or min(uy, vy) > maxy:
             continue
             
-        edge_geom = LineString([(ux, uy), (vx, vy)])
-        if edge_geom.intersects(combined_poly):
-            edges_to_remove.append((u, v, k))
+        try:
+            edge_geom = LineString([(ux, uy), (vx, vy)])
+            if edge_geom.intersects(combined_poly):
+                edges_to_remove.append((u, v, k))
+        except Exception:
+            continue
             
     if edges_to_remove:
         G_working.remove_edges_from(edges_to_remove)
@@ -73,25 +82,29 @@ def remove_edges_in_red_zones(G, red_zone_polygons):
 
 def get_safe_route(region: str, from_lat: float, from_lon: float, to_lat: float, to_lon: float, red_zone_polygons: list = None):
     """
-    Compute safe shortest path avoiding red zone polygons with fallback handling.
+    Compute safe shortest path avoiding red zone polygons with boundary checking and robust fallback.
     """
+    # Defensive boundary checking
+    if not (-90.0 <= from_lat <= 90.0 and -90.0 <= to_lat <= 90.0 and -180.0 <= from_lon <= 180.0 and -180.0 <= to_lon <= 180.0):
+        raise ValueError("Coordinates are out of plausible geographical bounds (-90 to 90 lat, -180 to 180 lon).")
+        
     G = load_graph(region)
     G_working = remove_edges_in_red_zones(G, red_zone_polygons) if red_zone_polygons else G.copy()
     
-    orig_node = ox.distance.nearest_nodes(G_working, from_lon, from_lat)
-    dest_node = ox.distance.nearest_nodes(G_working, to_lon, to_lat)
-    
     try:
+        orig_node = ox.distance.nearest_nodes(G_working, from_lon, from_lat)
+        dest_node = ox.distance.nearest_nodes(G_working, to_lon, to_lat)
         route = nx.shortest_path(G_working, orig_node, dest_node, weight="length")
         coords = [[G_working.nodes[n]["y"], G_working.nodes[n]["x"]] for n in route]
         distance_km = nx.shortest_path_length(G_working, orig_node, dest_node, weight="length") / 1000.0
         return {
             "path_coordinates": coords,
             "distance_km": round(distance_km, 2),
-            "avoids_red_zones": True
+            "avoids_red_zones": True,
+            "warning": None
         }
     except (nx.NetworkXNoPath, nx.NodeNotFound):
-        # Fallback to default graph
+        # Fallback to base graph if path is disconnected or enveloped by red zones
         try:
             orig_orig = ox.distance.nearest_nodes(G, from_lon, from_lat)
             dest_orig = ox.distance.nearest_nodes(G, to_lon, to_lat)
@@ -101,13 +114,15 @@ def get_safe_route(region: str, from_lat: float, from_lon: float, to_lat: float,
             return {
                 "path_coordinates": coords,
                 "distance_km": round(distance_km, 2),
-                "avoids_red_zones": False
+                "avoids_red_zones": False,
+                "warning": "Origin or destination is enveloped by hazard red zones. Traversed baseline path with warning."
             }
         except Exception:
             return {
                 "path_coordinates": [[from_lat, from_lon], [to_lat, to_lon]],
                 "distance_km": 0.0,
-                "avoids_red_zones": False
+                "avoids_red_zones": False,
+                "warning": "Unable to resolve topological path. Returned direct origin-destination coordinates."
             }
 
 class RoutingEngine:

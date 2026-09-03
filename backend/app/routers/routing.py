@@ -29,12 +29,16 @@ def _get_red_zone_polygons():
 
 @router.get("/route", response_model=RouteResponse)
 def get_route(
-    from_lat: float = Query(11.55, description="Starting latitude"),
-    from_lon: float = Query(76.10, description="Starting longitude"),
-    to_lat: float = Query(11.60, description="Destination latitude"),
-    to_lon: float = Query(76.15, description="Destination longitude"),
+    from_lat: float = Query(11.55, ge=-90.0, le=90.0, description="Starting latitude"),
+    from_lon: float = Query(76.10, ge=-180.0, le=180.0, description="Starting longitude"),
+    to_lat: float = Query(11.60, ge=-90.0, le=90.0, description="Destination latitude"),
+    to_lon: float = Query(76.15, ge=-180.0, le=180.0, description="Destination longitude"),
     region: str = Query("wayanad", description="Region name for graph network")
 ):
+    # Boundary sanity check
+    if not (-90.0 <= from_lat <= 90.0 and -90.0 <= to_lat <= 90.0 and -180.0 <= from_lon <= 180.0 and -180.0 <= to_lon <= 180.0):
+        raise HTTPException(status_code=400, detail="Coordinates are out of geographical bounds (-90 to 90 lat, -180 to 180 lon).")
+        
     try:
         red_polygons = _get_red_zone_polygons()
         result = get_safe_route(
@@ -46,5 +50,7 @@ def get_route(
             red_zone_polygons=red_polygons
         )
         return RouteResponse(**result)
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Routing failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Routing service error: {str(e)}")
