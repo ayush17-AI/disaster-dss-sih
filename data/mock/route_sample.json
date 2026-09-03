@@ -1,0 +1,15 @@
+{
+  "type": "Feature",
+  "geometry": {
+    "type": "LineString",
+    "coordinates": [
+      [76.14, 11.55],
+      [76.145, 11.552],
+      [76.15, 11.555]
+    ]
+  },
+  "properties": {
+    "name": "Arterial path: Mundakkai to St. Joseph School",
+    "safe": true
+  }
+}

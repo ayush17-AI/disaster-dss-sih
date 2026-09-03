@@ -1,0 +1,22 @@
+[
+  {
+    "habitation_id": "hab_mundakkai_01",
+    "name": "Mundakkai",
+    "priority": 1,
+    "population": 420,
+    "kutcha_houses": 58,
+    "FOS": 0.79,
+    "assigned_shelter": "shelter_01",
+    "authorization_status": "PENDING_REVIEW"
+  },
+  {
+    "habitation_id": "hab_chooralmala_01",
+    "name": "Chooralmala",
+    "priority": 2,
+    "population": 250,
+    "kutcha_houses": 20,
+    "FOS": 0.82,
+    "assigned_shelter": "shelter_02",
+    "authorization_status": "PENDING_REVIEW"
+  }
+]

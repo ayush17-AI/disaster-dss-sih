@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Node/Next.js
+node_modules/
+.next/
+out/
+build/
+
+# Heavy Geospatial/Raster formats
+*.tif
+*.tiff
+*.geotiff
+*.nc
+*.h5
+*.dem
+*.gpkg
+
+# OS files
+.DS_Store
+Thumbs.db
